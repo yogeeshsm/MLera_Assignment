@@ -173,7 +173,6 @@ export default function Footer() {
         <div className="mt-12 sm:mt-14 pt-6 sm:pt-8 border-t border-gray-200">
           <div className="flex flex-col sm:flex-row items-center justify-between gap-4 text-xs sm:text-sm text-gray-400">
             <p>© {new Date().getFullYear()} MLera — Developed under IIIT Dharwad Research Park. All rights reserved.</p>
-            <p className="hidden sm:block">Built with ❤️ in Dharwad, India</p>
           </div>
         </div>
       </div>
