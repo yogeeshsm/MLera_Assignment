@@ -86,8 +86,8 @@ export default function AIBuddy() {
 
         <div className="mt-10 sm:mt-16 grid lg:grid-cols-5 gap-6 lg:gap-10 items-start max-w-6xl mx-auto">
           {/* Chat window */}
-          <SectionReveal delay={100}>
-            <div className="lg:col-span-3 rounded-2xl bg-white shadow-xl shadow-violet-100/40 border border-gray-100 overflow-hidden">
+          <SectionReveal delay={100} className="lg:col-span-3">
+            <div className="rounded-2xl bg-white shadow-xl shadow-violet-100/40 border border-gray-100 overflow-hidden">
               {/* Chat header */}
               <div className="flex items-center gap-3 px-4 sm:px-6 py-3 sm:py-4 bg-gradient-to-r from-violet-600 to-indigo-600">
                 <div className="w-8 h-8 rounded-full bg-white/20 flex items-center justify-center">
@@ -212,8 +212,8 @@ export default function AIBuddy() {
           </SectionReveal>
 
           {/* Right sidebar – features + suggested questions */}
-          <SectionReveal delay={300}>
-            <div className="lg:col-span-2 space-y-4 sm:space-y-5">
+          <SectionReveal delay={300} className="lg:col-span-2">
+            <div className="space-y-4 sm:space-y-5">
               {/* Capabilities */}
               <div className="rounded-2xl bg-white border border-gray-100 shadow-lg shadow-violet-50/50 p-5 sm:p-6">
                 <h3 className="text-sm font-bold text-gray-900 mb-3 sm:mb-4">
