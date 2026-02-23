@@ -9,16 +9,66 @@ function CodeBlock({ code }) {
   const handleCopy = () => {
     navigator.clipboard.writeText(code).then(() => { setCopied(true); setTimeout(() => setCopied(false), 2000); });
   };
-  const lines = code.trim().split("\n");
-  const tokenize = (line) => {
-    return line
-      .replace(/&/g, "&amp;").replace(/</g, "&lt;").replace(/>/g, "&gt;")
-      .replace(/(#.*)$/g, '<span style="color:#6b7280">$1</span>')
-      .replace(/\b(import|from|as|def|return|for|in|if|else|class|True|False|None|and|or|not)\b/g, '<span style="color:#818cf8">$1</span>')
-      .replace(/\b([A-Z][a-zA-Z0-9_]*)\b/g, '<span style="color:#34d399">$1</span>')
-      .replace(/(".*?"|'.*?')/g, '<span style="color:#fbbf24">$1</span>')
-      .replace(/\b(\d+\.?\d*)\b/g, '<span style="color:#f87171">$1</span>');
+
+  const KEYWORDS = new Set([
+    'import','from','as','def','return','for','in','if','else','elif',
+    'class','True','False','None','and','or','not','print','range','len','pass','with','lambda'
+  ]);
+
+  const esc = (s) => s.replace(/&/g, "&amp;").replace(/</g, "&lt;").replace(/>/g, "&gt;");
+
+  const tokenizeLine = (line) => {
+    let html = '';
+    let i = 0;
+    while (i < line.length) {
+      // Comment
+      if (line[i] === '#') {
+        html += `<span style="color:#6b7280">${esc(line.slice(i))}</span>`;
+        break;
+      }
+      // String (single or double quoted)
+      if (line[i] === '"' || line[i] === "'") {
+        const q = line[i];
+        let j = i + 1;
+        while (j < line.length && line[j] !== q) { if (line[j] === '\\') j++; j++; }
+        j++;
+        html += `<span style="color:#fbbf24">${esc(line.slice(i, j))}</span>`;
+        i = j; continue;
+      }
+      // Number
+      if (/\d/.test(line[i])) {
+        let j = i;
+        while (j < line.length && /[\d.]/.test(line[j])) j++;
+        html += `<span style="color:#f87171">${esc(line.slice(i, j))}</span>`;
+        i = j; continue;
+      }
+      // Word
+      if (/[a-zA-Z_]/.test(line[i])) {
+        let j = i;
+        while (j < line.length && /\w/.test(line[j])) j++;
+        const word = line.slice(i, j);
+        if (KEYWORDS.has(word)) {
+          html += `<span style="color:#818cf8">${esc(word)}</span>`;
+        } else if (/^[A-Z]/.test(word)) {
+          html += `<span style="color:#34d399">${esc(word)}</span>`;
+        } else {
+          html += esc(word);
+        }
+        i = j; continue;
+      }
+      // Operators / punctuation
+      if (/[=+\-*/<>!%&|^~]/.test(line[i])) {
+        html += `<span style="color:#94a3b8">${esc(line[i])}</span>`;
+        i++; continue;
+      }
+      // Anything else
+      html += esc(line[i]);
+      i++;
+    }
+    return html;
   };
+
+  const lines = code.trim().split("\n");
   return (
     <div className="relative rounded-xl overflow-hidden border border-violet-100 bg-[#0f0f1a] text-left">
       <div className="flex items-center justify-between px-4 py-2 bg-[#1a1a2e] border-b border-white/5">
@@ -32,7 +82,7 @@ function CodeBlock({ code }) {
           {lines.map((line, i) => (
             <div key={i} className="flex gap-3">
               <span className="select-none text-gray-600 w-4 text-right flex-shrink-0">{i + 1}</span>
-              <span dangerouslySetInnerHTML={{ __html: tokenize(line) || "&nbsp;" }} />
+              <span dangerouslySetInnerHTML={{ __html: tokenizeLine(line) || "&nbsp;" }} />
             </div>
           ))}
         </pre>
