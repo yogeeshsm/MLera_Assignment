@@ -1,8 +1,9 @@
 "use client";
 
-import { useState, useEffect } from "react";
+import { useState, useEffect, useRef, useCallback } from "react";
 import SectionReveal from "./SectionReveal";
 
+/* ── Animated Counter ─────────────────────────────────── */
 function AnimatedCounter({ target, duration = 2000, suffix = "" }) {
   const [count, setCount] = useState(0);
   const [started, setStarted] = useState(false);
@@ -42,6 +43,16 @@ function AnimatedCounter({ target, duration = 2000, suffix = "" }) {
       {count}
       {suffix}
     </span>
+  );
+}
+
+/* ── Floating Blob ────────────────────────────────────── */
+function FloatingBlob({ className, delay = "0s" }) {
+  return (
+    <div
+      className={`absolute rounded-full blur-3xl pointer-events-none ${className}`}
+      style={{ animation: `float 6s ease-in-out infinite`, animationDelay: delay }}
+    />
   );
 }
 
@@ -125,21 +136,85 @@ const visualizationSteps = [
   },
 ];
 
+const AUTO_STEP_DURATION = 4000; // ms per step
+
 export default function InteractiveLearning() {
   const [activeStep, setActiveStep] = useState(0);
+  const [transitioning, setTransitioning] = useState(false);
+  const [progress, setProgress] = useState(0);
+  const [isPaused, setIsPaused] = useState(false);
+  const progressRef = useRef(null);
+  const stepRef = useRef(0);
+
+  const goToStep = useCallback(
+    (i) => {
+      if (i === stepRef.current) return;
+      setTransitioning(true);
+      setTimeout(() => {
+        setActiveStep(i);
+        stepRef.current = i;
+        setTransitioning(false);
+        setProgress(0);
+      }, 220);
+    },
+    []
+  );
+
+  /* Auto-cycle + progress bar */
+  useEffect(() => {
+    if (isPaused) return;
+    const startTime = performance.now();
+    const tick = () => {
+      const elapsed = performance.now() - startTime;
+      const pct = Math.min((elapsed / AUTO_STEP_DURATION) * 100, 100);
+      setProgress(pct);
+      if (pct < 100) {
+        progressRef.current = requestAnimationFrame(tick);
+      } else {
+        const next = (stepRef.current + 1) % visualizationSteps.length;
+        goToStep(next);
+      }
+    };
+    progressRef.current = requestAnimationFrame(tick);
+    return () => cancelAnimationFrame(progressRef.current);
+  }, [activeStep, isPaused, goToStep]);
+
+  const handleStepClick = (i) => {
+    setIsPaused(false);
+    goToStep(i);
+  };
 
   return (
-    <section className="py-12 sm:py-16 md:py-20 lg:py-28 bg-gradient-to-b from-violet-50/30 to-white">
-      <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+    <section
+      className="relative py-12 sm:py-16 md:py-20 lg:py-28 bg-gradient-to-b from-violet-50/30 to-white overflow-hidden"
+      onMouseEnter={() => setIsPaused(true)}
+      onMouseLeave={() => setIsPaused(false)}
+    >
+      {/* ── Floating background blobs ── */}
+      <FloatingBlob
+        className="w-72 h-72 bg-violet-200/30 -top-20 -left-20"
+        delay="0s"
+      />
+      <FloatingBlob
+        className="w-96 h-96 bg-indigo-200/20 top-1/2 -right-32"
+        delay="2s"
+      />
+      <FloatingBlob
+        className="w-56 h-56 bg-purple-200/25 bottom-0 left-1/4"
+        delay="4s"
+      />
+
+      <div className="relative max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
         <SectionReveal>
           <div className="text-center max-w-3xl mx-auto">
-            <span className="inline-flex items-center px-3 py-1 rounded-full text-xs font-semibold bg-violet-100 text-violet-700 mb-4">
+            <span className="inline-flex items-center px-3 py-1 rounded-full text-xs font-semibold bg-violet-100 text-violet-700 mb-4 animate-pulse">
               🔬 Interactive Learning
             </span>
             <h2 className="text-2xl sm:text-3xl md:text-4xl lg:text-5xl font-extrabold text-gray-900 tracking-tight">
               Watch Models{" "}
-              <span className="text-transparent bg-clip-text bg-gradient-to-r from-violet-600 to-indigo-600">
+              <span className="relative inline-block text-transparent bg-clip-text bg-gradient-to-r from-violet-600 to-indigo-600">
                 Come Alive
+                <span className="absolute -inset-1 bg-gradient-to-r from-violet-600/10 to-indigo-600/10 blur-sm rounded -z-10" />
               </span>
             </h2>
             <p className="mt-3 sm:mt-4 text-base sm:text-lg text-gray-600 leading-relaxed">
@@ -150,9 +225,13 @@ export default function InteractiveLearning() {
         </SectionReveal>
 
         <div className="mt-10 sm:mt-16 grid lg:grid-cols-2 gap-8 lg:gap-14 items-center max-w-6xl mx-auto">
-          {/* Visualization panel */}
+          {/* ── Visualization Panel ──────────────────────── */}
           <SectionReveal delay={100}>
-            <div className="rounded-2xl bg-white shadow-xl shadow-violet-100/40 border border-gray-100 overflow-hidden">
+            <div className="relative rounded-2xl bg-white shadow-xl shadow-violet-100/40 border border-gray-100 overflow-hidden group">
+              {/* Gradient border glow on hover */}
+              <div className="absolute inset-0 rounded-2xl bg-gradient-to-br from-violet-400/20 to-indigo-400/20 opacity-0 group-hover:opacity-100 transition-opacity duration-500 pointer-events-none" />
+
+              {/* Title bar */}
               <div className="flex items-center gap-2 px-4 py-2.5 bg-gray-50 border-b border-gray-100">
                 <span className="w-2.5 h-2.5 rounded-full bg-red-400" />
                 <span className="w-2.5 h-2.5 rounded-full bg-yellow-400" />
@@ -160,39 +239,87 @@ export default function InteractiveLearning() {
                 <span className="ml-3 text-[10px] text-gray-400 font-mono">
                   MLera — Live Visualization
                 </span>
+                {/* Live / paused badge */}
+                <span className="ml-auto flex items-center gap-1.5 text-[9px] text-gray-400 font-mono">
+                  <span
+                    className={`w-1.5 h-1.5 rounded-full ${
+                      isPaused ? "bg-yellow-400" : "bg-green-400 animate-pulse"
+                    }`}
+                  />
+                  {isPaused ? "paused" : "live"}
+                </span>
               </div>
+
+              {/* Progress bar */}
+              <div className="h-0.5 bg-gray-100 relative overflow-hidden">
+                <div
+                  className="h-full bg-gradient-to-r from-violet-500 to-indigo-500"
+                  style={{ width: `${progress}%`, transition: "none" }}
+                />
+              </div>
+
               <div className="p-4 sm:p-6">
                 {/* Step tabs */}
                 <div className="flex gap-1.5 sm:gap-2 mb-4 sm:mb-5">
                   {visualizationSteps.map((step, i) => (
                     <button
                       key={step.id}
-                      onClick={() => setActiveStep(i)}
-                      className={`text-[10px] sm:text-xs px-2.5 sm:px-3 py-1.5 rounded-full font-semibold transition-all duration-200 ${
+                      onClick={() => handleStepClick(i)}
+                      className={`relative text-[10px] sm:text-xs px-2.5 sm:px-3 py-1.5 rounded-full font-semibold transition-all duration-300 ${
                         activeStep === i
-                          ? "bg-violet-600 text-white shadow-md"
-                          : "bg-gray-100 text-gray-500 hover:bg-violet-50 hover:text-violet-600"
+                          ? "bg-violet-600 text-white shadow-md scale-105"
+                          : "bg-gray-100 text-gray-500 hover:bg-violet-50 hover:text-violet-600 hover:scale-105"
                       }`}
                     >
+                      {activeStep === i && (
+                        <span className="absolute inset-0 rounded-full ring-2 ring-violet-400 ring-offset-1 animate-ping opacity-30 pointer-events-none" />
+                      )}
                       {step.label}
                     </button>
                   ))}
                 </div>
 
-                {/* Active visualization */}
-                <div className="rounded-xl overflow-hidden border border-violet-100">
+                {/* Active visualization — fade + scale transition */}
+                <div
+                  className={`rounded-xl overflow-hidden border border-violet-100 transition-all duration-300 ${
+                    transitioning
+                      ? "opacity-0 scale-95"
+                      : "opacity-100 scale-100"
+                  }`}
+                >
                   {visualizationSteps[activeStep].visual}
                 </div>
 
-                {/* Description */}
-                <p className="mt-3 sm:mt-4 text-xs sm:text-sm text-gray-600 leading-relaxed">
+                {/* Step dot indicators */}
+                <div className="flex justify-center gap-2 mt-3">
+                  {visualizationSteps.map((_, i) => (
+                    <button
+                      key={i}
+                      onClick={() => handleStepClick(i)}
+                      className={`rounded-full transition-all duration-300 ${
+                        activeStep === i
+                          ? "w-5 h-2 bg-violet-600"
+                          : "w-2 h-2 bg-gray-300 hover:bg-violet-300"
+                      }`}
+                    />
+                  ))}
+                </div>
+
+                {/* Description — fades with step */}
+                <p
+                  className={`mt-3 sm:mt-4 text-xs sm:text-sm text-gray-600 leading-relaxed transition-all duration-300 ${
+                    transitioning
+                      ? "opacity-0 translate-y-2"
+                      : "opacity-100 translate-y-0"
+                  }`}
+                >
                   {visualizationSteps[activeStep].desc}
                 </p>
               </div>
             </div>
           </SectionReveal>
 
-          {/* Right – Story-based approach + stats */}
+          {/* ── Right Side ───────────────────────────────── */}
           <SectionReveal delay={250}>
             <div className="space-y-5 sm:space-y-6">
               <div>
@@ -214,33 +341,44 @@ export default function InteractiveLearning() {
                     icon: "📈",
                     title: "Live Visualizations",
                     text: "Watch best-fit lines evolve and cost curves drop in real-time",
+                    gradient: "from-violet-50 to-purple-50",
+                    border: "hover:border-violet-300",
                   },
                   {
                     icon: "🎯",
                     title: "Step-by-Step Building",
                     text: "Build models incrementally — no black boxes, full transparency",
+                    gradient: "from-indigo-50 to-blue-50",
+                    border: "hover:border-indigo-300",
                   },
                   {
                     icon: "🧪",
                     title: "Experiment Freely",
                     text: "Change parameters and instantly see how your model reacts",
+                    gradient: "from-purple-50 to-pink-50",
+                    border: "hover:border-purple-300",
                   },
                 ].map((item, i) => (
                   <div
                     key={i}
-                    className="flex items-start gap-3 p-3 sm:p-4 rounded-xl bg-white border border-gray-100 hover:border-violet-200 hover:shadow-md transition-all duration-200"
+                    className={`group/card flex items-start gap-3 p-3 sm:p-4 rounded-xl bg-white border border-gray-100 ${item.border} hover:shadow-lg hover:-translate-y-0.5 transition-all duration-300`}
                   >
-                    <span className="flex-shrink-0 w-9 h-9 rounded-lg bg-violet-50 flex items-center justify-center text-base">
+                    <span
+                      className={`flex-shrink-0 w-9 h-9 rounded-lg bg-gradient-to-br ${item.gradient} flex items-center justify-center text-base group-hover/card:scale-110 transition-transform duration-300 shadow-sm`}
+                    >
                       {item.icon}
                     </span>
-                    <div>
-                      <div className="text-sm font-semibold text-gray-800">
+                    <div className="flex-1 min-w-0">
+                      <div className="text-sm font-semibold text-gray-800 group-hover/card:text-violet-700 transition-colors duration-200">
                         {item.title}
                       </div>
-                      <div className="text-xs sm:text-sm text-gray-500 mt-0.5">
+                      <div className="text-xs sm:text-sm text-gray-500 mt-0.5 group-hover/card:text-gray-600 transition-colors duration-200">
                         {item.text}
                       </div>
                     </div>
+                    <span className="text-gray-200 group-hover/card:text-violet-400 group-hover/card:translate-x-0.5 transition-all duration-300 text-lg leading-none mt-0.5">
+                      →
+                    </span>
                   </div>
                 ))}
               </div>
@@ -248,15 +386,18 @@ export default function InteractiveLearning() {
               {/* Stats */}
               <div className="grid grid-cols-3 gap-3">
                 {[
-                  { value: 26, suffix: "+", label: "ML Modules" },
-                  { value: 200, suffix: "+", label: "Lexicon Terms" },
-                  { value: 50, suffix: "+", label: "Visualizations" },
+                  { value: 26, suffix: "+", label: "ML Modules", icon: "🧠" },
+                  { value: 200, suffix: "+", label: "Lexicon Terms", icon: "📚" },
+                  { value: 50, suffix: "+", label: "Visualizations", icon: "✨" },
                 ].map((stat, i) => (
                   <div
                     key={i}
-                    className="text-center p-3 sm:p-4 rounded-xl bg-violet-50/70 border border-violet-100"
+                    className="group/stat relative text-center p-3 sm:p-4 rounded-xl bg-violet-50/70 border border-violet-100 hover:border-violet-300 hover:shadow-md hover:-translate-y-1 hover:bg-violet-50 transition-all duration-300 overflow-hidden cursor-default"
                   >
-                    <div className="text-xl sm:text-2xl font-extrabold text-violet-700">
+                    {/* Shimmer sweep on hover */}
+                    <div className="absolute inset-0 -translate-x-full group-hover/stat:translate-x-full transition-transform duration-700 bg-gradient-to-r from-transparent via-white/60 to-transparent skew-x-12 pointer-events-none" />
+                    <div className="text-base mb-0.5">{stat.icon}</div>
+                    <div className="text-xl sm:text-2xl font-extrabold text-violet-700 group-hover/stat:text-violet-900 transition-colors duration-200">
                       <AnimatedCounter
                         target={stat.value}
                         suffix={stat.suffix}
