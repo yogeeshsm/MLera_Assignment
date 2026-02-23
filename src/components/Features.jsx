@@ -1,4 +1,7 @@
 import SectionReveal from "./SectionReveal";
+import Badge from "./ui/Badge";
+import SectionHeader, { Highlight } from "./ui/SectionHeader";
+import Button from "./ui/Button";
 
 const features = [
   {
@@ -56,49 +59,59 @@ export default function Features() {
     <section id="features" className="py-12 sm:py-16 md:py-20 lg:py-28 bg-white">
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
         <SectionReveal>
-          <div className="text-center max-w-3xl mx-auto">
-            <span className="inline-flex items-center px-3 py-1 rounded-full text-xs font-semibold bg-violet-100 text-violet-700 mb-4">
-              Features
-            </span>
-            <h2 className="text-2xl sm:text-3xl md:text-4xl lg:text-5xl font-extrabold text-gray-900 tracking-tight">
-              Everything You Need to{" "}
-              <span className="text-transparent bg-clip-text bg-gradient-to-r from-violet-600 to-indigo-600">
-                Learn ML
-              </span>
-            </h2>
-            <p className="mt-3 sm:mt-4 text-base sm:text-lg text-gray-600 leading-relaxed">
-              MLera combines structured content, interactivity, and clarity into
-              a single platform built for real learning.
-            </p>
-          </div>
+          <SectionHeader
+            badge="Features"
+            badgeVariant="violet"
+            title={<>Everything You Need to <Highlight>Learn ML</Highlight></>}
+            subtitle="MLera combines structured content, interactivity, and clarity into a single platform built for real learning."
+            align="center"
+          />
         </SectionReveal>
 
         <div className="mt-10 sm:mt-16 grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4 sm:gap-6">
           {features.map((feature, i) => (
             <SectionReveal key={i} delay={i * 100}>
-              <div className="group relative p-5 sm:p-7 rounded-2xl bg-white border border-gray-100 hover:-translate-y-2 hover:shadow-xl hover:border-gray-200 transition-all duration-300 ease-out h-full">
+              <div className="group relative flex flex-col p-5 sm:p-7 rounded-2xl bg-white ring-1 ring-gray-100 hover:ring-violet-200 hover:-translate-y-2 hover:shadow-xl hover:shadow-violet-50 transition-all duration-300 ease-out h-full">
                 {/* Icon */}
                 <div
-                  className={`w-12 h-12 sm:w-14 sm:h-14 rounded-xl ${feature.bg} flex items-center justify-center mb-4 sm:mb-5 group-hover:scale-110 transition-transform duration-300`}
+                  className={`w-12 h-12 sm:w-14 sm:h-14 rounded-xl bg-gradient-to-br ${feature.gradient} flex items-center justify-center mb-4 sm:mb-5 group-hover:scale-110 group-hover:shadow-lg transition-all duration-300 shrink-0`}
                 >
-                  <div className={`bg-gradient-to-r ${feature.gradient} bg-clip-text text-transparent`}>
-                    <div className="text-gray-700">{feature.icon}</div>
-                  </div>
+                  <div className="text-white">{feature.icon}</div>
                 </div>
 
                 <h3 className="text-base sm:text-lg font-bold text-gray-900 mb-1.5 sm:mb-2">
                   {feature.title}
                 </h3>
-                <p className="text-xs sm:text-sm text-gray-600 leading-relaxed">
+                <p className="text-xs sm:text-sm text-gray-500 leading-relaxed flex-1">
                   {feature.description}
                 </p>
 
-                {/* Hover gradient border effect */}
-                <div className={`absolute inset-x-0 bottom-0 h-1 rounded-b-2xl bg-gradient-to-r ${feature.gradient} opacity-0 group-hover:opacity-100 transition-opacity duration-300`} />
+                {/* Bottom arrow hint */}
+                <div className="mt-4 flex items-center gap-1 text-xs font-semibold text-violet-500 opacity-0 group-hover:opacity-100 transition-opacity duration-300">
+                  Explore
+                  <svg className="w-3.5 h-3.5 translate-x-0 group-hover:translate-x-0.5 transition-transform" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2.5} d="M9 5l7 7-7 7" />
+                  </svg>
+                </div>
+
+                {/* Hover gradient bottom bar */}
+                <div className={`absolute inset-x-0 bottom-0 h-0.5 rounded-b-2xl bg-gradient-to-r ${feature.gradient} opacity-0 group-hover:opacity-100 transition-opacity duration-300`} />
               </div>
             </SectionReveal>
           ))}
         </div>
+
+        {/* Bottom CTA row */}
+        <SectionReveal delay={400}>
+          <div className="mt-12 sm:mt-16 flex justify-center">
+            <Button href="#how-it-works" variant="outline" size="md">
+              See How It Works
+              <svg className="ml-2 w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M17 8l4 4m0 0l-4 4m4-4H3" />
+              </svg>
+            </Button>
+          </div>
+        </SectionReveal>
       </div>
     </section>
   );

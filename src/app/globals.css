@@ -10,6 +10,14 @@
   --color-foreground: var(--foreground);
   --font-sans: var(--font-geist-sans);
   --font-mono: var(--font-geist-mono);
+
+  /* Brand colour tokens — use with text-brand, bg-brand, etc. */
+  --color-brand:        #7c3aed;
+  --color-brand-light:  #ede9fe;
+  --color-brand-dark:   #5b21b6;
+
+  /* Shadow tokens */
+  --shadow-card: 0 4px 24px -2px rgba(124,58,237,0.10), 0 2px 8px -1px rgba(0,0,0,0.05);
 }
 
 html {
@@ -90,6 +98,58 @@ html {
   animation: slide-in-right 0.8s ease-out forwards;
 }
 
+.animate-scale-in {
+  animation: scale-in 0.4s ease-out forwards;
+}
+
+.animate-shimmer {
+  animation: shimmer 2.5s linear infinite;
+}
+
+.animate-gradient-x {
+  background-size: 200% 200%;
+  animation: gradient-x 4s ease infinite;
+}
+
+.animate-bounce-gentle {
+  animation: bounce-gentle 2s ease-in-out infinite;
+}
+
+/* ── Extra keyframes ─────────────────────────────────── */
+
+@keyframes scale-in {
+  0%   { opacity: 0; transform: scale(0.88); }
+  100% { opacity: 1; transform: scale(1); }
+}
+
+@keyframes shimmer {
+  0%   { background-position: -200% center; }
+  100% { background-position:  200% center; }
+}
+
+@keyframes gradient-x {
+  0%, 100% { background-position: 0%   50%; }
+  50%       { background-position: 100% 50%; }
+}
+
+@keyframes bounce-gentle {
+  0%, 100% { transform: translateY(0);    }
+  50%       { transform: translateY(-6px); }
+}
+
+@keyframes spin-slow {
+  to { transform: rotate(360deg); }
+}
+
+@keyframes ping-once {
+  0%   { transform: scale(1);   opacity: 1; }
+  75%  { transform: scale(1.6); opacity: 0; }
+  100% { transform: scale(1.6); opacity: 0; }
+}
+
+.animate-spin-slow  { animation: spin-slow 8s linear infinite; }
+.animate-ping-once  { animation: ping-once 0.6s ease-out forwards; }
+
 /* Staggered animation delays */
 .delay-100 { animation-delay: 0.1s; }
 .delay-200 { animation-delay: 0.2s; }
@@ -98,11 +158,37 @@ html {
 .delay-500 { animation-delay: 0.5s; }
 .delay-600 { animation-delay: 0.6s; }
 .delay-700 { animation-delay: 0.7s; }
+.delay-800 { animation-delay: 0.8s; }
+.delay-900 { animation-delay: 0.9s; }
 
 /* Start hidden for animation */
 .animate-on-load {
   opacity: 0;
   animation-fill-mode: forwards;
+}
+
+/* ── Utility classes ──────────────────────────────────── */
+
+/* Glassmorphism card */
+.glass {
+  background: rgba(255, 255, 255, 0.7);
+  backdrop-filter: blur(12px);
+  -webkit-backdrop-filter: blur(12px);
+  border: 1px solid rgba(255, 255, 255, 0.3);
+}
+
+/* Gradient text helper */
+.gradient-text {
+  background: linear-gradient(135deg, #7c3aed, #4f46e5);
+  -webkit-background-clip: text;
+  -webkit-text-fill-color: transparent;
+  background-clip: text;
+}
+
+/* Violet glow ring */
+.glow-violet {
+  box-shadow: 0 0 0 3px rgba(139, 92, 246, 0.25),
+              0 4px 20px rgba(139, 92, 246, 0.15);
 }
 
 body {
